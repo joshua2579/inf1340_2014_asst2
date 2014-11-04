@@ -15,6 +15,61 @@ import re
 import datetime
 import json
 
+def quarantine(individual, countries):
+    """
+    :param people:
+    :param countries:
+    :return: Boolean
+    """
+    coming_from = individual["from"]["country"]
+    if len(countries[coming_from]["medical_advisory"]) > 0:
+        return True
+
+    if "via" in individual:
+        coming_via = individual["via"]["country"]
+        if len(countries[coming_via]["medical_advisory"]) > 0:
+            return True
+
+    return False
+
+def entry_complete(individual):
+    if "first_name" in individual:
+        if len(individual["first_name"]) == 0:
+            return False
+    else:
+        return False
+    if "last_name" in individual:
+        if len(individual["last_name"]) == 0:
+            return False
+    else:
+        return False
+    if "birth_date" in individual:
+        if len(individual["birth_date"]) == 0:
+            return False
+    else:
+        return False
+    if "passport" in individual:
+        if len(individual["passport"]) == 0:
+            return False
+    else:
+        return False
+    if "home" in individual:
+        if len(individual["home"]['country']) == 0:
+            return False
+    else:
+        return False
+    if "from" in individual:
+        if len(individual["from"]['country']) == 0:
+            return False
+    else:
+        return False
+    if "entry_reason" in individual:
+        if len(individual["entry_reason"]) == 0:
+            return False
+    else:
+        return False
+
+
 
 def decide(input_file, watchlist_file, countries_file):
     """
@@ -26,8 +81,29 @@ def decide(input_file, watchlist_file, countries_file):
         an entry or transit visa is required, and whether there is currently a medical advisory
     :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
     """
+    with open(input_file) as file_reader:
+        file_contents = file_reader.read()
+        json_people = json.loads(file_contents)
+
+    with open(watchlist_file) as file_reader:
+        file_contents = file_reader.read()
+        json_watchlist = json.loads(file_contents)
+
+    with open(countries_file) as file_reader:
+        file_contents = file_reader.read()
+        json_countries = json.loads(file_contents)
+
+        results = []
+        for person in json_people:
+            #     the quarantine function is called here.
+            quarantine_status = quarantine(person,json_countries)
+            #   the incomplete function is called here.
+            entry_record_is_complete = entry_complete(person)
+
+
     return ["Reject"]
 
+decide("test_returning_citizen.json", "watchlist.json", "countries.json")
 
 def valid_passport_format(passport_number):
     """
