@@ -33,6 +33,10 @@ def quarantine(individual, countries):
     return False
 
 def entry_complete(individual):
+    """
+    :param individual:
+    :return:
+    """
     if "first_name" in individual:
         if len(individual["first_name"]) == 0:
             return False
@@ -69,6 +73,34 @@ def entry_complete(individual):
     else:
         return False
 
+def visitor_visa(individual, countries):
+    """
+    :param individual:
+    :param countries:
+    :return: False only if something is wrong. True, if everything is ok.
+    """
+    if individual["entry_reason"] == "visit":
+        home_country = individual["home"]["country"]
+        if countries[home_country]["visitor_visa_required"]:
+            visa_date = individual["visa"]["date"]
+            if "2014-11-04" - visa_date >= 2: #Todo: To be fixed
+                return False
+    return True
+
+def transit_visa(individual, countries):
+    """
+    :param individual:
+    :param countries:
+    :return: False only if something is wrong. True, if everything is ok.
+    """
+    if individual["entry_reason"] == "transit":
+        home_country = individual["home"]["country"]
+        if countries[home_country]["transit_visa_required"]:
+            visa_date = individual["visa"]["date"]
+            if "2014-11-04" - visa_date >= 2: #Todo: To be fixed
+                return False
+    return True
+
 
 
 def decide(input_file, watchlist_file, countries_file):
@@ -99,6 +131,11 @@ def decide(input_file, watchlist_file, countries_file):
             quarantine_status = quarantine(person,json_countries)
             #   the incomplete function is called here.
             entry_record_is_complete = entry_complete(person)
+            #   the visitor visa functions is called here.
+            valid_visitor_visa = visitor_visa(person, json_countries)
+            #   the transit visa functions is called here.
+            valid_transit_visa = transit_visa(person, json_countries)
+            
 
 
     return ["Reject"]
