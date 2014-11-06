@@ -82,8 +82,14 @@ def visitor_visa(individual, countries):
     if individual["entry_reason"] == "visit":
         home_country = individual["home"]["country"]
         if countries[home_country]["visitor_visa_required"]:
-            visa_date = individual["visa"]["date"]
-            if "2014-11-04" - visa_date >= 2: #Todo: To be fixed
+            if "visa" in individual:
+                visa_date = individual["visa"]["date"]
+                visa_date = visa_date.split("-")
+                visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
+                num_days = (datetime.date.today() - visa_date).days
+                if num_days >= 365*2:
+                    return False
+            else:
                 return False
     return True
 
@@ -96,8 +102,14 @@ def transit_visa(individual, countries):
     if individual["entry_reason"] == "transit":
         home_country = individual["home"]["country"]
         if countries[home_country]["transit_visa_required"]:
-            visa_date = individual["visa"]["date"]
-            if "2014-11-04" - visa_date >= 2: #Todo: To be fixed
+            if "visa" in individual:
+                visa_date = individual["visa"]["date"]
+                visa_date = visa_date.split("-")
+                visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
+                num_days = (datetime.date.today() - visa_date).days
+                if num_days >= 365*2:
+                    return False
+            else:
                 return False
     return True
 
@@ -140,7 +152,7 @@ def decide(input_file, watchlist_file, countries_file):
 
     return ["Reject"]
 
-decide("test_returning_citizen.json", "watchlist.json", "countries.json")
+decide("example_entries.json", "watchlist.json", "countries.json")
 
 def valid_passport_format(passport_number):
     """
