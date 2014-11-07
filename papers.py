@@ -17,9 +17,11 @@ import json
 
 def quarantine(individual, countries):
     """
-    :param people:
-    :param countries:
-    :return: Boolean
+    Checks whether a person needs to be quarantined.
+
+    :param individual: The name of the JSON object for one individual person.
+    :param countries: The name of the JSON object containing a list of countries.
+    :return:
     """
     coming_from = individual["from"]["country"]
     if len(countries[coming_from]["medical_advisory"]) > 0:
@@ -34,8 +36,10 @@ def quarantine(individual, countries):
 
 def entry_complete(individual):
     """
-    :param individual:
-    :return:
+    Checks whether an entry has all required items.
+
+    :param individual: The name of the JSON object for one individual person.
+    :return: A boolean indicating whether all required entries are present.
     """
     if "first_name" in individual:
         if len(individual["first_name"]) == 0:
@@ -73,13 +77,16 @@ def entry_complete(individual):
     else:
         return False
 
-def visitor_visa(individual, countries):
+def check_visa(individual, countries, visa_type):
     """
-    :param individual:
-    :param countries:
-    :return: False only if something is wrong. True, if everything is ok.
+    Checks whether a visa is valid.
+
+    :param individual: The name of the JSON object for one individual person.
+    :param countries: The name of the JSON object containing a list of countries.
+    :param visa_type: A string indicating whether the visa is visit or transit.
+    :return: A boolean indicating whether the visa is valid or not.
     """
-    if individual["entry_reason"] == "visit":
+    if individual["entry_reason"] == visa_type:
         home_country = individual["home"]["country"]
         if countries[home_country]["visitor_visa_required"]:
             if "visa" in individual:
@@ -92,28 +99,6 @@ def visitor_visa(individual, countries):
             else:
                 return False
     return True
-
-def transit_visa(individual, countries):
-    """
-    :param individual:
-    :param countries:
-    :return: False only if something is wrong. True, if everything is ok.
-    """
-    if individual["entry_reason"] == "transit":
-        home_country = individual["home"]["country"]
-        if countries[home_country]["transit_visa_required"]:
-            if "visa" in individual:
-                visa_date = individual["visa"]["date"]
-                visa_date = visa_date.split("-")
-                visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
-                num_days = (datetime.date.today() - visa_date).days
-                if num_days >= 365*2:
-                    return False
-            else:
-                return False
-    return True
-
-
 
 def decide(input_file, watchlist_file, countries_file):
     """
@@ -143,10 +128,10 @@ def decide(input_file, watchlist_file, countries_file):
             quarantine_status = quarantine(person,json_countries)
             #   the incomplete function is called here.
             entry_record_is_complete = entry_complete(person)
-            #   the visitor visa functions is called here.
-            valid_visitor_visa = visitor_visa(person, json_countries)
-            #   the transit visa functions is called here.
-            valid_transit_visa = transit_visa(person, json_countries)
+            #   the visitor visa function is called here.
+            valid_visitor_visa = check_visa(person, json_countries, "visit")
+            #   the transit visa function is called here.
+            valid_transit_visa = check_visa(person, json_countries, "transit")
             
 
 
