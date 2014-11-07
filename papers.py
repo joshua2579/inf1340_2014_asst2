@@ -118,7 +118,7 @@ def check_visa(individual, countries, visa_type):
     """
     if individual["entry_reason"].lower() == visa_type:
         home_country = individual["home"]["country"]
-        if countries[home_country]["visitor_visa_required"]:
+        if countries[home_country]["visitor_visa_required"] == 1:
             if "visa" in individual:
                 # Parse date into list of 3 strings for Year, Month, Day.
                 visa_date = individual["visa"]["date"].split("-")
@@ -174,44 +174,54 @@ def decide(input_file, watchlist_file, countries_file):
         an entry or transit visa is required, and whether there is currently a medical advisory
     :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
     """
-    with open(input_file) as file_reader:
-        file_contents = file_reader.read()
-        json_people = json.loads(file_contents)
 
-    with open(watchlist_file) as file_reader:
-        file_contents = file_reader.read()
-        json_watchlist = json.loads(file_contents)
 
-    with open(countries_file) as file_reader:
-        file_contents = file_reader.read()
-        json_countries = json.loads(file_contents)
+    try:
+        with open(input_file) as file_reader:
+            file_contents = file_reader.read()
+            json_people = json.loads(file_contents)
+    except FileNotFoundError:
+        raise FileNotFoundError
 
-        results = []
-        for person in json_people:
-            if not entry_complete(person):
-                if valid_formats(person):
-                    quarantined = quarantine(person,json_countries)
-                    valid_visitor_visa = check_visa(person, json_countries, "visit")
-                    valid_transit_visa = check_visa(person, json_countries, "transit")
-                    on_watchlist = check_watchlist(person, json_watchlist)
-                    returning_traveller = check_returning_traveller(person)
+    try:
+        with open(watchlist_file) as file_reader:
+            file_contents = file_reader.read()
+            json_watchlist = json.loads(file_contents)
+    except FileNotFoundError:
+        raise FileNotFoundError
 
-                    if quarantined:
-                        results.append("Quarantine")
-                    elif not valid_transit_visa or \
-                            not valid_visitor_visa:
-                        results.append("Reject:visa")
-                    elif on_watchlist:
-                        results.append("Secondary")
-                    elif returning_traveller:
-                        results.append("Accept")
-                    else:
-                        results.append("Accept")
+    try:
+        with open(countries_file) as file_reader:
+            file_contents = file_reader.read()
+            json_countries = json.loads(file_contents)
+    except FileNotFoundError:
+        raise FileNotFoundError
 
+    results = []
+    for person in json_people:
+        if not entry_complete(person):
+            if valid_formats(person):
+                quarantined = quarantine(person,json_countries)
+                valid_visitor_visa = check_visa(person, json_countries, "visit")
+                valid_transit_visa = check_visa(person, json_countries, "transit")
+                on_watchlist = check_watchlist(person, json_watchlist)
+                returning_traveller = check_returning_traveller(person)
+
+                if quarantined:
+                    results.append("Quarantine")
+                elif not valid_transit_visa or \
+                        not valid_visitor_visa:
+                    results.append("Reject")
+                elif on_watchlist:
+                    results.append("Secondary")
+                elif returning_traveller:
+                    results.append("Accept")
                 else:
-                    results.append("Reject:badFormats")
+                    results.append("Accept")
             else:
-                results.append("Reject:entryIncomplete")
+                results.append("Reject")
+        else:
+            results.append("Reject")
     return results
 
-print(decide("example_entries.json", "watchlist.json", "countries.json"))
+# print(decide("test_quarantine.json", "watchlist.json", "countries.json"))
