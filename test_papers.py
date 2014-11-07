@@ -20,6 +20,7 @@ def test_basic():
     assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary"]
     assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
 
+# add functions for other tests
 
 def test_files():
     with pytest.raises(FileNotFoundError):
@@ -47,6 +48,10 @@ def test_empty_entry():
     assert decide("test_empty_passport.json", "watchlist.json", "countries.json") == ["Reject"]
     assert decide("test_empty_entry_reason.json", "watchlist.json", "countries.json") == ["Reject"]
 
-
-# add functions for other tests
+def test_valid_formats():
+    with pytest.raises(ValueError):
+        decide("test_bad_visa_date.json", "watchlist.json", "countries.json")
+    with pytest.raises(ValueError):
+        decide("test_bad_bdate.json", "watchlist.json", "countries.json")
+    assert decide("test_bad_passport.json", "watchlist.json", "countries.json") == ["Reject"]
 
