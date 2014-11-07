@@ -130,7 +130,6 @@ def check_visa(individual, countries, visa_type):
     :return: A boolean indicating whether the visa is valid or not.
     """
 
-
     if individual["entry_reason"].lower() == visa_type:
         home_country = individual["home"]["country"]
         if countries[home_country]["visitor_visa_required"] == "1":
@@ -140,7 +139,8 @@ def check_visa(individual, countries, visa_type):
                         # Parse date into list of 3 strings for Year, Month, Day.
                         visa_date = individual["visa"]["date"].split("-")
                         # Convert list of strings into date object.
-                        visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
+                        visa_date = datetime.date(int(visa_date[0]),
+                                                  int(visa_date[1]), int(visa_date[2]))
                         # Compare number of days between the visa date and today.
                         num_days = (datetime.date.today() - visa_date).days
                         if num_days >= 365*2:
@@ -180,7 +180,8 @@ def check_returning_traveller(individual):
     Checks if a person has the home country KAN returning to Kanadia.
 
     :param individual: The name of the JSON object for one individual person.
-    :return:  A boolean indicating whether a person has the home country KAN returning to Kan.
+    :return:  A boolean indicating whether a person has the
+    home country KAN returning to Kan.
     """
     return individual["entry_reason"].lower() == "returning" and\
         individual["home"]["country"].lower() == "kan"
@@ -220,7 +221,6 @@ def decide(input_file, watchlist_file, countries_file):
 
     results = []
     for person in json_people:
-        # results.append(person["first_name"])
         if entry_complete(person):
             if valid_formats(person):
                 quarantined = quarantine(person, json_countries)
@@ -245,4 +245,3 @@ def decide(input_file, watchlist_file, countries_file):
         else:
             results.append("Reject")
     return results
-# print(decide("test_bad_visa_date.json", "watchlist.json", "countries.json"))
