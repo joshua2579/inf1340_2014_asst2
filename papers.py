@@ -159,8 +159,8 @@ def check_returning_traveller(individual):
     :param individual: The name of the JSON object for one individual person.
     :return:  A boolean indicating whether a person has the home country KAN returning to Kan.
     """
-    return individual["entry_reason"].lower == "returning" and\
-           individual["from"]["country"].lower() == "kan"
+    return individual["entry_reason"].lower() == "returning" and\
+           individual["home"]["country"].lower() == "kan"
 
 
 
@@ -188,21 +188,30 @@ def decide(input_file, watchlist_file, countries_file):
 
         results = []
         for person in json_people:
-            if valid_formats(person):
-                quarantine_status = quarantine(person,json_countries)
-                entry_record_is_complete = entry_complete(person)
-                valid_visitor_visa = check_visa(person, json_countries, "visit")
-                valid_transit_visa = check_visa(person, json_countries, "transit")
-                on_watchlist = check_watchlist(person, json_watchlist)
-                returning_traveller = check_returning_traveller(person)
+            if not entry_complete(person):
+                if valid_formats(person):
+                    quarantined = quarantine(person,json_countries)
+                    valid_visitor_visa = check_visa(person, json_countries, "visit")
+                    valid_transit_visa = check_visa(person, json_countries, "transit")
+                    on_watchlist = check_watchlist(person, json_watchlist)
+                    returning_traveller = check_returning_traveller(person)
 
-                # if
+                    if quarantined:
+                        results.append("Quarantine")
+                    elif not valid_transit_visa or \
+                            not valid_visitor_visa:
+                        results.append("Reject:visa")
+                    elif on_watchlist:
+                        results.append("Secondary")
+                    elif returning_traveller:
+                        results.append("Accept")
+                    else:
+                        results.append("Accept")
 
+                else:
+                    results.append("Reject:badFormats")
             else:
-                results.append("Reject")
-            
-
-
+                results.append("Reject:entryIncomplete")
     return results
 
-decide("example_entries.json", "watchlist.json", "countries.json")
+print(decide("example_entries.json", "watchlist.json", "countries.json"))
