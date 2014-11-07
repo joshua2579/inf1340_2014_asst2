@@ -15,12 +15,10 @@ def test_basic():
     assert decide("test_watchlist_name.json", "watchlist.json", "countries.json") == ["Secondary"]
     assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
     assert decide("test_good_noncanadian.json", "watchlist.json", "countries.json") == ["Accept"]
-    #   Transit visa required but not present
     assert decide("test_transit_visa_needed_but_not_present.json", "watchlist.json", "countries.json") == ["Reject"]
-    #   Transit visa required but over two years old
-    #   Visitor visa required but not present
-    #   Visitor visa required but over two years old
-    #assert decide("test_visitor_visa")
+    assert decide("test_transit_visa_needed_but_too_old.json", "watchlist.json", "countries.json") == ["Reject"]
+    assert decide("test_visitors_visa_needed_but_not_present.json", "watchlist.json", "countries.json") == ["Reject"]
+    assert decide("test_visitors_visa_needed_but_too_old.json", "watchlist.json", "countries.json") == ["Reject"]
 
 def test_files():
     with pytest.raises(FileNotFoundError):
