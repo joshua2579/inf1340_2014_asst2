@@ -12,7 +12,7 @@ from papers import decide
 def test_basic():
     assert decide("test_returning_citizen.json", "watchlist.json", "countries.json") == ["Accept", "Accept"]
     assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary"]
-    #   Name is in watchlist
+    assert decide("test_watchlist_name.json", "watchlist.json", "countries.json") == ["Secondary"]
     assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
     assert decide("test_good_noncanadian.json", "watchlist.json", "countries.json") == ["Accept"]
     #   Transit visa required but not present
