@@ -45,7 +45,7 @@ def valid_formats(individual):
     :return: Whether the formats are valid.
     """
     return valid_passport_format(individual["passport"]) and \
-        (individual["birth_date"])
+        (valid_date_format(individual["birth_date"]))
 
 
 def quarantine(individual, countries):
@@ -64,7 +64,6 @@ def quarantine(individual, countries):
         coming_via = individual["via"]["country"]
         if len(countries[coming_via]["medical_advisory"]) > 0:
             return True
-
     return False
 
 
@@ -130,9 +129,11 @@ def check_visa(individual, countries, visa_type):
     :param visa_type: A string indicating whether the visa is visit or transit.
     :return: A boolean indicating whether the visa is valid or not.
     """
+
+
     if individual["entry_reason"].lower() == visa_type:
         home_country = individual["home"]["country"]
-        if countries[home_country]["visitor_visa_required"] == 1:
+        if countries[home_country]["visitor_visa_required"] == "1":
             if "visa" in individual:
                 if "date" in individual["visa"]:
                     if valid_date_format(individual["visa"]["date"]):
@@ -244,4 +245,4 @@ def decide(input_file, watchlist_file, countries_file):
         else:
             results.append("Reject")
     return results
-# print(decide("example_entries.json", "watchlist.json", "countries.json"))
+# print(decide("test_bad_visa_date.json", "watchlist.json", "countries.json"))
