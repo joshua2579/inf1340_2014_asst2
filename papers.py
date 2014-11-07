@@ -92,12 +92,18 @@ def entry_complete(individual):
     else:
         return False
     if "home" in individual:
-        if len(individual["home"]['country']) == 0:
+        if "country" in individual["home"]:
+            if len(individual["home"]['country']) == 0:
+                return False
+        else:
             return False
     else:
         return False
     if "from" in individual:
-        if len(individual["from"]['country']) == 0:
+        if "country" in individual["from"]:
+            if len(individual["from"]['country']) == 0:
+                return False
+        else:
             return False
     else:
         return False
@@ -106,6 +112,7 @@ def entry_complete(individual):
             return False
     else:
         return False
+    return True
 
 def check_visa(individual, countries, visa_type):
     """
@@ -181,7 +188,7 @@ def decide(input_file, watchlist_file, countries_file):
             file_contents = file_reader.read()
             json_people = json.loads(file_contents)
     except FileNotFoundError:
-        raise FileNotFoundError
+        raise FileNotFoundError("Cannot find file: " + input_file)
 
     try:
         with open(watchlist_file) as file_reader:
@@ -199,7 +206,7 @@ def decide(input_file, watchlist_file, countries_file):
 
     results = []
     for person in json_people:
-        if not entry_complete(person):
+        if entry_complete(person):
             if valid_formats(person):
                 quarantined = quarantine(person,json_countries)
                 valid_visitor_visa = check_visa(person, json_countries, "visit")
