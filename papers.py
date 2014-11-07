@@ -2,18 +2,48 @@
 
 """ Computer-based immigration office for Kanadia """
 
-__author__ = 'Susan Sim'
-__email__ = "ses@drsusansim.org"
-
-__copyright__ = "2014 Susan Sim"
-__license__ = "MIT License"
-
-__status__ = "Prototype"
+__author__ = 'Joshua Liben and Kristina Mitova'
 
 # imports one per line
 import re
 import datetime
 import json
+
+def valid_passport_format(passport_number):
+    """
+    Checks whether a passport number is five sets of five alpha-number characters separated by dashes
+    :param passport_number: alpha-numeric string
+    :return: Boolean; True if the format is valid, False otherwise
+    """
+    passport_format = re.compile('.{5}-.{5}-.{5}-.{5}-.{5}')
+
+    if passport_format.match(passport_number):
+        return True
+    else:
+        return False
+
+
+def valid_date_format(date_string):
+    """
+    Checks whether a date has the format YYYY-mm-dd in numbers
+    :param date_string: date to be checked
+    :return: Boolean True if the format is valid, False otherwise
+    """
+    try:
+        datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+def valid_formats(individual):
+    """
+    Checks whether certain entry formats are valid.
+
+    :param individual: The name of the JSON object for one individual person.
+    :return: Whether the formats are valid.
+    """
+    return valid_passport_format(individual["passport"]) and \
+            (individual["birth_date"])
 
 def quarantine(individual, countries):
     """
@@ -21,7 +51,7 @@ def quarantine(individual, countries):
 
     :param individual: The name of the JSON object for one individual person.
     :param countries: The name of the JSON object containing a list of countries.
-    :return:
+    :return: A boolean indicating whether a person needs to be quarantined.
     """
     coming_from = individual["from"]["country"]
     if len(countries[coming_from]["medical_advisory"]) > 0:
@@ -86,19 +116,22 @@ def check_visa(individual, countries, visa_type):
     :param visa_type: A string indicating whether the visa is visit or transit.
     :return: A boolean indicating whether the visa is valid or not.
     """
-    if individual["entry_reason"] == visa_type:
+    if individual["entry_reason"].lower() == visa_type:
         home_country = individual["home"]["country"]
         if countries[home_country]["visitor_visa_required"]:
             if "visa" in individual:
-                visa_date = individual["visa"]["date"]
-                visa_date = visa_date.split("-")
+                # Parse date into list of 3 strings for Year, Month, Day.
+                visa_date = individual["visa"]["date"].split("-")
+                # Convert list of strings into date object.
                 visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
+                # Compare number of days between the visa date and today.
                 num_days = (datetime.date.today() - visa_date).days
                 if num_days >= 365*2:
                     return False
             else:
                 return False
     return True
+
 
 def decide(input_file, watchlist_file, countries_file):
     """
@@ -124,43 +157,17 @@ def decide(input_file, watchlist_file, countries_file):
 
         results = []
         for person in json_people:
-            #     the quarantine function is called here.
-            quarantine_status = quarantine(person,json_countries)
-            #   the incomplete function is called here.
-            entry_record_is_complete = entry_complete(person)
-            #   the visitor visa function is called here.
-            valid_visitor_visa = check_visa(person, json_countries, "visit")
-            #   the transit visa function is called here.
-            valid_transit_visa = check_visa(person, json_countries, "transit")
+            if valid_formats(person):
+                quarantine_status = quarantine(person,json_countries)
+                entry_record_is_complete = entry_complete(person)
+                valid_visitor_visa = check_visa(person, json_countries, "visit")
+                valid_transit_visa = check_visa(person, json_countries, "transit")
+                check_watchlist(person, json_watchlist)
+            else:
+                results.append("Reject")
             
 
 
     return ["Reject"]
 
 decide("example_entries.json", "watchlist.json", "countries.json")
-
-def valid_passport_format(passport_number):
-    """
-    Checks whether a pasport number is five sets of five alpha-number characters separated by dashes
-    :param passport_number: alpha-numeric string
-    :return: Boolean; True if the format is valid, False otherwise
-    """
-    passport_format = re.compile('.{5}-.{5}-.{5}-.{5}-.{5}')
-
-    if passport_format.match(passport_number):
-        return True
-    else:
-        return False
-
-
-def valid_date_format(date_string):
-    """
-    Checks whether a date has the format YYYY-mm-dd in numbers
-    :param date_string: date to be checked
-    :return: Boolean True if the format is valid, False otherwise
-    """
-    try:
-        datetime.datetime.strptime(date_string, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
