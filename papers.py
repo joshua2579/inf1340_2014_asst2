@@ -9,6 +9,7 @@ import re
 import datetime
 import json
 
+
 def valid_passport_format(passport_number):
     """
     Checks whether a passport number is five sets of five alpha-number characters separated by dashes
@@ -35,6 +36,7 @@ def valid_date_format(date_string):
     except ValueError:
         return False
 
+
 def valid_formats(individual):
     """
     Checks whether certain entry formats are valid.
@@ -43,7 +45,8 @@ def valid_formats(individual):
     :return: Whether the formats are valid.
     """
     return valid_passport_format(individual["passport"]) and \
-            (individual["birth_date"])
+        (individual["birth_date"])
+
 
 def quarantine(individual, countries):
     """
@@ -63,6 +66,7 @@ def quarantine(individual, countries):
             return True
 
     return False
+
 
 def entry_complete(individual):
     """
@@ -84,6 +88,8 @@ def entry_complete(individual):
     if "birth_date" in individual:
         if len(individual["birth_date"]) == 0:
             return False
+        elif not valid_date_format(individual["birth_date"]):
+            raise ValueError("Birthdate is incorrect format.")
     else:
         return False
     if "passport" in individual:
@@ -114,6 +120,7 @@ def entry_complete(individual):
         return False
     return True
 
+
 def check_visa(individual, countries, visa_type):
     """
     Checks whether a visa is valid.
@@ -127,17 +134,22 @@ def check_visa(individual, countries, visa_type):
         home_country = individual["home"]["country"]
         if countries[home_country]["visitor_visa_required"] == 1:
             if "visa" in individual:
-                # Parse date into list of 3 strings for Year, Month, Day.
-                visa_date = individual["visa"]["date"].split("-")
-                # Convert list of strings into date object.
-                visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
-                # Compare number of days between the visa date and today.
-                num_days = (datetime.date.today() - visa_date).days
-                if num_days >= 365*2:
-                    return False
+                if "date" in individual["visa"]:
+                    if valid_date_format(individual["visa"]["date"]):
+                        # Parse date into list of 3 strings for Year, Month, Day.
+                        visa_date = individual["visa"]["date"].split("-")
+                        # Convert list of strings into date object.
+                        visa_date = datetime.date(int(visa_date[0]), int(visa_date[1]), int(visa_date[2]))
+                        # Compare number of days between the visa date and today.
+                        num_days = (datetime.date.today() - visa_date).days
+                        if num_days >= 365*2:
+                            return False
+                    else:
+                        raise ValueError("Date is not in Correct format")
             else:
                 return False
     return True
+
 
 def check_watchlist(individual, watchlist):
     """
@@ -153,11 +165,12 @@ def check_watchlist(individual, watchlist):
 
     for person in watchlist:
         if first_name == person["first_name"].lower() and \
-                        last_name == person["last_name"].lower():
+                last_name == person["last_name"].lower():
             return True
         if passport_number == person["passport"].lower():
             return True
     return False
+
 
 def check_returning_traveller(individual):
     """
@@ -167,8 +180,7 @@ def check_returning_traveller(individual):
     :return:  A boolean indicating whether a person has the home country KAN returning to Kan.
     """
     return individual["entry_reason"].lower() == "returning" and\
-           individual["home"]["country"].lower() == "kan"
-
+        individual["home"]["country"].lower() == "kan"
 
 
 def decide(input_file, watchlist_file, countries_file):
@@ -182,7 +194,6 @@ def decide(input_file, watchlist_file, countries_file):
     :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
     """
 
-
     try:
         with open(input_file) as file_reader:
             file_contents = file_reader.read()
@@ -195,20 +206,20 @@ def decide(input_file, watchlist_file, countries_file):
             file_contents = file_reader.read()
             json_watchlist = json.loads(file_contents)
     except FileNotFoundError:
-        raise FileNotFoundError
+        raise FileNotFoundError("Cannot find file: " + watchlist_file)
 
     try:
         with open(countries_file) as file_reader:
             file_contents = file_reader.read()
             json_countries = json.loads(file_contents)
     except FileNotFoundError:
-        raise FileNotFoundError
+        raise FileNotFoundError("Cannot find file: " + countries_file)
 
     results = []
     for person in json_people:
         if entry_complete(person):
             if valid_formats(person):
-                quarantined = quarantine(person,json_countries)
+                quarantined = quarantine(person, json_countries)
                 valid_visitor_visa = check_visa(person, json_countries, "visit")
                 valid_transit_visa = check_visa(person, json_countries, "transit")
                 on_watchlist = check_watchlist(person, json_watchlist)
@@ -230,5 +241,3 @@ def decide(input_file, watchlist_file, countries_file):
         else:
             results.append("Reject")
     return results
-
-# print(decide("test_quarantine.json", "watchlist.json", "countries.json"))
