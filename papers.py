@@ -132,6 +132,37 @@ def check_visa(individual, countries, visa_type):
                 return False
     return True
 
+def check_watchlist(individual, watchlist):
+    """
+    Checks to see is someone is on the watchlist.
+
+    :param individual: The name of the JSON object for one individual person.
+    :param watchlist: The name of the JSON object for a watchlist
+    :return: Whether the person is in the watchlist.
+    """
+    first_name = individual["first_name"].lower()
+    last_name = individual["last_name"].lower()
+    passport_number = individual["passport"].lower()
+
+    for person in watchlist:
+        if first_name == person["first_name"].lower() and \
+                        last_name == person["last_name"].lower():
+            return True
+        if passport_number == person["passport"].lower():
+            return True
+    return False
+
+def check_returning_traveller(individual):
+    """
+    Checks if a person has the home country KAN returning to Kanadia.
+
+    :param individual: The name of the JSON object for one individual person.
+    :return:  A boolean indicating whether a person has the home country KAN returning to Kan.
+    """
+    return individual["entry_reason"].lower == "returning" and\
+           individual["from"]["country"].lower() == "kan"
+
+
 
 def decide(input_file, watchlist_file, countries_file):
     """
@@ -162,12 +193,16 @@ def decide(input_file, watchlist_file, countries_file):
                 entry_record_is_complete = entry_complete(person)
                 valid_visitor_visa = check_visa(person, json_countries, "visit")
                 valid_transit_visa = check_visa(person, json_countries, "transit")
-                check_watchlist(person, json_watchlist)
+                on_watchlist = check_watchlist(person, json_watchlist)
+                returning_traveller = check_returning_traveller(person)
+
+                # if
+
             else:
                 results.append("Reject")
             
 
 
-    return ["Reject"]
+    return results
 
 decide("example_entries.json", "watchlist.json", "countries.json")
