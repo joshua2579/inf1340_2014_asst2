@@ -12,9 +12,13 @@ from papers import decide
 def test_basic():
     assert decide("test_returning_citizen.json", "watchlist.json", "countries.json") == ["Accept", "Accept"]
     assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary"]
+    #   Name is in watchlist
     assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
-
-# add functions for other tests
+    assert decide("test_good_noncanadian.json", "watchlist.json", "countries.json") == ["Accept"]
+    #   Transit visa required but not present
+    #   Transit visa required but over two years old
+    #   Visitor visa required but not present
+    #   Visitor visa required but over two years old
 
 def test_files():
     with pytest.raises(FileNotFoundError):
@@ -23,6 +27,7 @@ def test_files():
         decide("", "watchlist.json", "countries.json")
     with pytest.raises(FileNotFoundError):
         decide("test_returning_citizen.json", "watchlist.json", "")
+
 
 def test_missing_entry():
     assert decide("test_missing_fname.json", "watchlist.json", "countries.json") == ["Reject"]
@@ -33,6 +38,7 @@ def test_missing_entry():
     assert decide("test_missing_passport.json", "watchlist.json", "countries.json") == ["Reject"]
     assert decide("test_missing_entry_reason.json", "watchlist.json", "countries.json") == ["Reject"]
 
+
 def test_empty_entry():
     assert decide("test_empty_fname.json", "watchlist.json", "countries.json") == ["Reject"]
     assert decide("test_empty_lname.json", "watchlist.json", "countries.json") == ["Reject"]
@@ -41,6 +47,7 @@ def test_empty_entry():
     assert decide("test_empty_fromc.json", "watchlist.json", "countries.json") == ["Reject"]
     assert decide("test_empty_passport.json", "watchlist.json", "countries.json") == ["Reject"]
     assert decide("test_empty_entry_reason.json", "watchlist.json", "countries.json") == ["Reject"]
+
 
 def test_valid_formats():
     with pytest.raises(ValueError):

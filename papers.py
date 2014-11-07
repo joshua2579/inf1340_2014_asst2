@@ -146,6 +146,8 @@ def check_visa(individual, countries, visa_type):
                             return False
                     else:
                         raise ValueError("Date is not in Correct format")
+                else:
+                    return False
             else:
                 return False
     return True
@@ -217,6 +219,7 @@ def decide(input_file, watchlist_file, countries_file):
 
     results = []
     for person in json_people:
+        # results.append(person["first_name"])
         if entry_complete(person):
             if valid_formats(person):
                 quarantined = quarantine(person, json_countries)
@@ -241,3 +244,4 @@ def decide(input_file, watchlist_file, countries_file):
         else:
             results.append("Reject")
     return results
+# print(decide("example_entries.json", "watchlist.json", "countries.json"))
