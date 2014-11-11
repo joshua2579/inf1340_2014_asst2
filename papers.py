@@ -221,8 +221,7 @@ def decide(input_file, watchlist_file, countries_file):
 
     results = []
     for person in json_people:
-        if entry_complete(person):
-            if valid_formats(person):
+        if entry_complete(person) and valid_formats(person):
                 quarantined = quarantine(person, json_countries)
                 valid_visitor_visa = check_visa(person, json_countries, "visit")
                 valid_transit_visa = check_visa(person, json_countries, "transit")
@@ -240,8 +239,6 @@ def decide(input_file, watchlist_file, countries_file):
                     results.append("Accept")
                 else:
                     results.append("Accept")
-            else:
-                results.append("Reject")
         else:
             results.append("Reject")
     return results
